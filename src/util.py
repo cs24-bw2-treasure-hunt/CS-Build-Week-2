@@ -1,3 +1,7 @@
+import requests 
+import json
+
+
 class Queue:
     def __init__(self):
         self.queue = []
@@ -84,21 +88,6 @@ class Graph:
                     new_path.append(next_room)
                     q.enqueue(new_path)
 
-    def dft(self, starting_vertex):
-        """
-        Print each vertex in depth-first order
-        beginning from starting_vertex.
-        """
-        stack = Stack()
-        stack.push(starting_vertex)
-        visited = set()
-        while stack.sadditional_option = Stack()ize() > 0:
-            vertex = stack.pop()
-            if vertex not in visited:
-                print(vertex)
-                visited.add(vertex)
-                for next_vert in self.get_neighbors(vertex):
-                    stack.push(next_vert)
 
     def dfs(self, starting_vertex, destination_vertex):
         """
@@ -153,3 +142,14 @@ class Graph:
                         visited.add(item)
                 stack.push(path[-1])
         return None
+    
+
+headers = {
+    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Content-Type': 'application/json',
+}
+
+data = '{"direction":"s"}'
+
+response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
+print(response.json())
