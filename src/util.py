@@ -50,7 +50,7 @@ class Graph:
                                   "players": players, "items": items, "exits": exits, "cooldown": cooldown, "errors": errors, "messages": messages}
         
     def add_edge(self, room_id1, direction, room_id2):
-        direction_reverse = {"N": "S", "S": "N", "E": "W", "W": "E"}
+        direction_reverse = {"n": "s", "s": "n", "e": "w", "w": "e"}
         if room_id1 in self.directions and room_id2 in self.directions:
             self.directions[room_id1][direction] = room_id2
             reverse = direction_reverse[direction]
@@ -145,12 +145,12 @@ class Graph:
         return None
     
 
-headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
-    'Content-Type': 'application/json',
-}
+# headers = {
+#     'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+#     'Content-Type': 'application/json',
+# }
 
-data = '{"direction":"s"}'
+# data = '{"direction":"s"}'
 
-response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
-print(response.json())
+# response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
+# print(response.json())
