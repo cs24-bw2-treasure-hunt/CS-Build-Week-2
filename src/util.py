@@ -1,5 +1,4 @@
-import requests 
-import json
+
 
 
 class Queue:
@@ -38,27 +37,29 @@ class Stack:
 
 class Graph:
     def __init__(self):
-        self.vertices = {}
+        self.directions = {}
         self.room_info = {}
 
     def add_vertex(self, room_id, title, description, coordinates, elevation, terrain, players, items, exits, cooldown, errors, messages):
         edges = {}
         for direction in exits:
-            edges[direction] = "unknown"
+            edges[direction] = "?"
+        self.directions[room_id] = edges
+        
         self.room_info[room_id] = {"title": title, "description": description, "coordinates": coordinates, "elevation": elevation, "terrain": terrain,
                                   "players": players, "items": items, "exits": exits, "cooldown": cooldown, "errors": errors, "messages": messages}
-        self.vertices[room_id] = edges
+        
     def add_edge(self, room_id1, direction, room_id2):
         direction_reverse = {"N": "S", "S": "N", "E": "W", "W": "E"}
-        if room_id1 in self.vertices and room_id2 in self.vertices:
-            self.vertices[room_id1][direction] = room_id2
+        if room_id1 in self.directions and room_id2 in self.directions:
+            self.directions[room_id1][direction] = room_id2
             reverse = direction_reverse[direction]
-            self.vertices[room_id2][reverse] = room_id1
+            self.directions[room_id2][reverse] = room_id1
         else:
             raise IndexError("That vertex does not exist")
 
     def get_neighbors(self, room_id):
-        return self.vertices[room_id]
+        return self.directions[room_id]
 
     def bft(self, starting_room_id):
         q = Queue()
