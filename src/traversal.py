@@ -32,17 +32,23 @@ from functions import inventAndCoins
 """
 
 graph = Graph()
-def move(direction):
+def move(direct):
     headers = {
     'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
     'Content-Type': 'application/json',
     }
 
-    data = {"direction":direction}
+
+    data ='{"direction":"' +str(direct)+ '"}'
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
+
     time.sleep(response.json()["cooldown"])
-    return response.json()
+    if response.json()["errors"]==True:
+        print("ERRORRRR",response.json()["errors"])
+        return
+    else:
+        return response.json()
 
 def traverse(startingRoom):
     # print("startingRoom",startingRoom,startingRoom["room_id"])
