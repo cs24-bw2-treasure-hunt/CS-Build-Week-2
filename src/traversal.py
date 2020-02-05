@@ -2,7 +2,7 @@ from util import Graph,Stack,Queue
 import requests 
 import json
 import time
-from functions import inventAndCoins
+from functions import inventAndCoins,pickUpTreasure,InventoryLimitReached
 
 """
     Take into Account:
@@ -50,12 +50,10 @@ def move(direct):
     if response.json()["errors"]==True:
         print("ERRORRRR",response.json()["errors"])
         return
-    else:
-        return response.json()
+    return response.json()
 
 def traverse(startingRoom):
     # print("startingRoom",startingRoom,startingRoom["room_id"])
-    print("inventAndCoins", inventAndCoins())
     stack = Stack() # Will hold path
     path=[] # Will hold room id
     additional_option = Stack() # Will hold room id of rooms with unvisited directions
@@ -64,7 +62,7 @@ def traverse(startingRoom):
     graph.add_vertex(startingRoom["room_id"], startingRoom["title"], startingRoom["description"], startingRoom["coordinates"], startingRoom["elevation"], startingRoom["terrain"], startingRoom["players"], startingRoom["items"], startingRoom["exits"], startingRoom["cooldown"], startingRoom["errors"], startingRoom["messages"])
     while stack.size() > 0:
         room_id = stack.pop()
-        print("room_id",room_id)
+        print("room_id",room_id,"inventAndCoins()",inventAndCoins())
 
         if room_id not in visited:
             visited.add(room_id)
@@ -73,19 +71,24 @@ def traverse(startingRoom):
         if len(visited) == 500:
             return path
         exits = graph.directions[room_id]
-        print("EXITS", exits)
+        # print("EXITS", exits)
         # potential_rooms.sort()
         possible_directions = 0
         moved=False
         for key in exits:
-            print("Breaks Here 1")
+            # print("Breaks Here 1")
             if exits[key] =="?":
-                print("Breaks Here 4",)
-                print("key",key,"exits[key]",exits[key],"current Room", room_id, graph.directions[room_id])
+                # print("Breaks Here 4",)
+                # print("key",key,"exits[key]",exits[key],"current Room", room_id, graph.directions[room_id])
                 possible_directions +=1
                 if moved==False:
                     nextRoom=move(key)
                     print("nextRoom",nextRoom)
+                    if len(nextRoom["items"])>0:
+                        print("InventoryLimitReached",InventoryLimitReached())
+                        if InventoryLimitReached()==False:
+                            for i in nextRoom["items"]:
+                                pickUpTreasure(i)
                     graph.add_vertex(nextRoom["room_id"], nextRoom["title"], nextRoom["description"], nextRoom["coordinates"], nextRoom["elevation"], nextRoom["terrain"], nextRoom["players"], nextRoom["items"], nextRoom["exits"], nextRoom["cooldown"], nextRoom["errors"], nextRoom["messages"])
                     # print("graph.directions",graph.directions)
                     graph.add_edge(room_id,key,nextRoom["room_id"])
@@ -94,31 +97,32 @@ def traverse(startingRoom):
                     stack.push(nextRoom["room_id"])
                     moved=True
                 
-            print("Breaks Here 5")
+            # print("Breaks Here 5")
         if possible_directions > 1:
-            print("Breaks Here 2")
+            # print("Breaks Here 2")
             additional_option.push(room_id)
         #Another if to check for Inventory limit
         #Another if to check for treasure limit
         if possible_directions == 0:
-            print("Breaks Here 3")
+            # print("Breaks Here 3")
             next_room = additional_option.pop()
-            print("next_room",next_room, "room id",room_id)
+            # print("next_room",next_room, "room id",room_id)
             path_to_room = graph.bfs(room_id, next_room)
-            print("path_to_room",path_to_room)
+            # print("path_to_room",path_to_room)
             path.extend(path_to_room[1:])
             for item in path_to_room:
-                print("BFS first inside", item)
+                # print("Item in path ro room", item)
                 direction=graph.directions[item]
                 # direction=graph.directions[room_id].keys(item)
                 # move(direction)
                 for key in direction:
-                    print("BFS second inside", key,direction[key])
-                    if direction[key]==item:
-                        print("INSIDE direction")
+                    # print("Key in direction", key,direction[key],item, graph.directions[item].values())
+                    if direction[key] in graph.directions[item].values():
+                        # print("INSIDE direction HUGE SUCCESS")
                         move(key)                    
                 if item not in visited:
                     visited.add(item)
+            # print("End of path", path[-1], "Instantiate",instantiate()["room_id"])
             stack.push(path[-1])
         print("graph vertices", graph.directions)
     return None

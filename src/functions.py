@@ -1,5 +1,6 @@
 import requests 
 import json
+import time
 
 def inventAndCoins():
     headers = {
@@ -12,10 +13,10 @@ def inventAndCoins():
 
 def CarryLimit():
     Inventory=inventAndCoins()
-    return Inventory.strength
+    return Inventory["strength"]
 def InventoryList():
     Inventory=inventAndCoins()
-    return Inventory.inventory
+    return Inventory["inventory"]
 def InventoryLimitReached():
     if len(InventoryList())==CarryLimit():
         return True
@@ -57,10 +58,11 @@ def pickUpTreasure(treasure):
     'Content-Type': 'application/json',
     }
 
-    data = '{"name":f"{treasure}"'
+    data ='{"name":"' +str(treasure)+ '"}'
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/take/', headers=headers, data=data)
-    print("Pick Up Treasure", response.json())
+    time.sleep(response.json()["cooldown"])
+    return response.json
 
 def dropTreasure(treasure):
     headers = {
@@ -71,7 +73,8 @@ def dropTreasure(treasure):
     data = '{"name":f"{treasure}"}'
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/drop/', headers=headers, data=data)
-    print("Drop Treasure", response.json())
+    
+    return response.json()
 
 def wearEquipment(Equipment):
     headers = {
