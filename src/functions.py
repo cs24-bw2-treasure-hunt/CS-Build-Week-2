@@ -34,7 +34,7 @@ def InventoryList(inventory = None):
 def InventoryLimitReached(inventory = None):
     inventory=inventAndCoins()
     if len(inventory["inventory"])==inventory["strength"]:
-        return True
+        return True 
     else:
         return False
 
