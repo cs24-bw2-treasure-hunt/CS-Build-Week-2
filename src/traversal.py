@@ -45,12 +45,30 @@ def move(direct):
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
 
+    print(f"Current cooldown time {response.json()}")
+    time.sleep(response.json()["cooldown"])
+    if response.json()["errors"]==True:
+        print("ERRORRRR",response.json()["errors"])
+        return
+    return response.json()
+
+def wise_move(direct, next_room_id):
+    print("inside WISE MOVE, next_room_id", next_room_id)
+    headers = {    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Content-Type': 'application/json',
+    }
+
+    data = '{"direction":"' +str(direct)+'", "next_room_id": "'+str(next_room_id)+'"}'
+
+    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
     
     time.sleep(response.json()["cooldown"])
     if response.json()["errors"]==True:
         print("ERRORRRR",response.json()["errors"])
         return
     return response.json()
+
+
 
 def traverse(startingRoom):
     # print("startingRoom",startingRoom,startingRoom["room_id"])
@@ -62,9 +80,11 @@ def traverse(startingRoom):
     graph.add_vertex(startingRoom["room_id"], startingRoom["title"], startingRoom["description"], startingRoom["coordinates"], startingRoom["elevation"], startingRoom["terrain"], startingRoom["players"], startingRoom["items"], startingRoom["exits"], startingRoom["cooldown"], startingRoom["errors"], startingRoom["messages"])
     while stack.size() > 0:
         room_id = stack.pop()
-        print("room_id",room_id,"inventAndCoins()",inventAndCoins())
+        print("\n\nCurrent room_id",room_id)
+        # print(f"\n inventAndCoins()",inventAndCoins())
 
         if room_id not in visited:
+            print(f"Room {room_id} added to visited")
             visited.add(room_id)
             # graph.add_vertex(room_id, title, description, coordinates, elevation, terrain, players, items, exits, cooldown, errors, messages)
             path.append(room_id)
@@ -82,13 +102,15 @@ def traverse(startingRoom):
                 # print("key",key,"exits[key]",exits[key],"current Room", room_id, graph.directions[room_id])
                 possible_directions +=1
                 if moved==False:
+                    print(f"Moving from {room_id}, direction {key}")
                     nextRoom=move(key)
-                    print("nextRoom",nextRoom)
+                    print("\nNow in nextRoom",nextRoom)
                     if len(nextRoom["items"])>0:
-                        print("InventoryLimitReached",InventoryLimitReached())
+                        # print("\nInventoryLimitReached",InventoryLimitReached())
                         if InventoryLimitReached()==False:
-                            for i in nextRoom["items"]:
-                                pickUpTreasure(i)
+                            for item in nextRoom["items"]:
+                                print(f"about to pick up {item}")
+                                pickUpTreasure(item)
                     graph.add_vertex(nextRoom["room_id"], nextRoom["title"], nextRoom["description"], nextRoom["coordinates"], nextRoom["elevation"], nextRoom["terrain"], nextRoom["players"], nextRoom["items"], nextRoom["exits"], nextRoom["cooldown"], nextRoom["errors"], nextRoom["messages"])
                     # print("graph.directions",graph.directions)
                     graph.add_edge(room_id,key,nextRoom["room_id"])
@@ -99,30 +121,43 @@ def traverse(startingRoom):
                 
             # print("Breaks Here 5")
         if possible_directions > 1:
-            # print("Breaks Here 2")
+            print(f"More than 1 possible direction, adding {room_id} to additional option stack")
             additional_option.push(room_id)
         #Another if to check for Inventory limit
         #Another if to check for treasure limit
         if possible_directions == 0:
-            # print("Breaks Here 3")
-            next_room = additional_option.pop()
+            return_room = additional_option.pop()
+            print(f"No unknown directions, going back to {return_room}")
             # print("next_room",next_room, "room id",room_id)
-            path_to_room = graph.bfs(room_id, next_room)
-            # print("path_to_room",path_to_room)
+            path_to_room = graph.bfs(room_id, return_room)
+            print("Following path_to_room", path_to_room)
+    
             path.extend(path_to_room[1:])
-            for item in path_to_room:
-                # print("Item in path ro room", item)
-                direction=graph.directions[item]
+
+            i=0
+            while i< len(path_to_room)-1:
+                
+                current_room_id = path_to_room[i]
+                next_room_id = path_to_room[i+1]
+                print("CURRENT ROOM", current_room_id)
+                print("NEXT ROOM", next_room_id)
+
+            # for index, item in enumerate(path_to_room):
+                # print("Item in path_to_room", )
+                direction=graph.directions[current_room_id]
                 # direction=graph.directions[room_id].keys(item)
                 # move(direction)
+                print(f"DIRECTION: {direction}")
                 for key in direction:
                     # print("Key in direction", key,direction[key],item, graph.directions[item].values())
-                    if direction[key] in graph.directions[item].values():
-                        # print("INSIDE direction HUGE SUCCESS")
-                        move(key)                    
-                if item not in visited:
+                    if direction[key] in graph.directions[current_room_id].values():
+                        print(f"about to make a WISE MOVE from {current_room_id} {key} to {next_room_id}")
+                        next_room = wise_move(key, next_room_id)
+                        print(f"\nMade a WISE MOVE to {next_room}")                    
+                if current_room_id not in visited:
                     visited.add(item)
-            # print("End of path", path[-1], "Instantiate",instantiate()["room_id"])
+                i+=1
+            # print("End of path",is not in list path[-1], "Instantiate",instantiate()["room_id"])
             stack.push(path[-1])
         print("graph vertices", graph.directions)
     return None
