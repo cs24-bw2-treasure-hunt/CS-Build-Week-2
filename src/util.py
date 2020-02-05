@@ -59,6 +59,7 @@ class Graph:
             raise IndexError("That vertex does not exist")
 
     def get_neighbors(self, room_id):
+        print("self.directions[room_id]",self.directions[room_id])
         return self.directions[room_id]
 
     def bft(self, starting_room_id):
@@ -74,20 +75,24 @@ class Graph:
                     q.enqueue(next_room)
 
     def bfs(self, starting_room_id, destination_room_id):
+        print("BFS starting_room_id, destination_room_id", starting_room_id, destination_room_id)
         q = Queue()
         q.enqueue([starting_room_id])
         visited = set()
         while q.size() > 0:
             path = q.dequeue()
+            print("path in bfs", path)
             room_id = path[-1]
+            print("room_id bfs",room_id)
             if room_id not in visited:
                 if room_id == destination_room_id:
-                    return path
+                    return path[1:]
                 visited.add(room_id)
                 for next_room in self.get_neighbors(room_id):
                     new_path = list(path)
-                    new_path.append(next_room)
+                    new_path.append(self.directions[room_id][next_room])
                     q.enqueue(new_path)
+        
 
 
     def dfs(self, starting_vertex, destination_vertex):

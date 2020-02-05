@@ -7,26 +7,29 @@ from functions import inventAndCoins
 """
     Take into Account:
         - Cool Down Time [DONE]
-        - Inventory (limit of how many items we can carry)
+        - Inventory (limit of how many items we can carry) [tonight]
             - treasure or other items that could help in the rooms
         - 1,000+ coins go to the wishing well (if we know where it is, if not search for it).
-          Once found do action there (change name)
+          Once found do action there (change name) [tonight]
 
     Directions:
-        - Traversal path (Big Array) ==>will need to hold the data from the rooms
+        - Traversal path (Big Array) ==>will need to hold the data from the rooms, online SQL. [tonight]
+
         - Note where the shop is to sell the treasure => BFS back to here everytime
           our inventory is full or over a limit we set (70%)
         - Note where the wishing well is.
+
+
         - Once we hit a dead end go back to the nearest room that has not been
-          visited.
+          visited. [Done]
 
     
     Information:
-        - Add new rooms to graphs with the edges
-        - Save information in the other vertex in the graph
+        - Add new rooms to graphs with the edges  [Done]
+        - Save information in the other vertex in the graph [Done]
     
-    - DFT => Traverse
-    - BFS => Shortest paths
+    - DFT => Traverse [WIP]
+    - BFS => Shortest paths [WIP]
 
     
 """
@@ -38,11 +41,11 @@ def move(direct):
     'Content-Type': 'application/json',
     }
 
-
     data ='{"direction":"' +str(direct)+ '"}'
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
 
+    
     time.sleep(response.json()["cooldown"])
     if response.json()["errors"]==True:
         print("ERRORRRR",response.json()["errors"])
@@ -73,35 +76,46 @@ def traverse(startingRoom):
         print("EXITS", exits)
         # potential_rooms.sort()
         possible_directions = 0
+        moved=False
         for key in exits:
-            print("key value pair in exits",key,exits[key])
+            print("Breaks Here 1")
             if exits[key] =="?":
+                print("Breaks Here 4",)
+                print("key",key,"exits[key]",exits[key],"current Room", room_id, graph.directions[room_id])
                 possible_directions +=1
-                print("key",key)
-                nextRoom=move(key)
-                print("nextRoom",nextRoom)
-                graph.add_vertex(nextRoom["room_id"], nextRoom["title"], nextRoom["description"], nextRoom["coordinates"], nextRoom["elevation"], nextRoom["terrain"], nextRoom["players"], nextRoom["items"], nextRoom["exits"], nextRoom["cooldown"], nextRoom["errors"], nextRoom["messages"])
-                print("graph.directions",graph.directions)
-                graph.add_edge(room_id,key,nextRoom["room_id"])
-                print("graph.directions After",graph.directions)
-       
-                stack.push(nextRoom["room_id"])
+                if moved==False:
+                    nextRoom=move(key)
+                    print("nextRoom",nextRoom)
+                    graph.add_vertex(nextRoom["room_id"], nextRoom["title"], nextRoom["description"], nextRoom["coordinates"], nextRoom["elevation"], nextRoom["terrain"], nextRoom["players"], nextRoom["items"], nextRoom["exits"], nextRoom["cooldown"], nextRoom["errors"], nextRoom["messages"])
+                    # print("graph.directions",graph.directions)
+                    graph.add_edge(room_id,key,nextRoom["room_id"])
+                    # print("graph.directions After",graph.directions)
+        
+                    stack.push(nextRoom["room_id"])
+                    moved=True
+                
+            print("Breaks Here 5")
         if possible_directions > 1:
+            print("Breaks Here 2")
             additional_option.push(room_id)
         #Another if to check for Inventory limit
         #Another if to check for treasure limit
         if possible_directions == 0:
+            print("Breaks Here 3")
             next_room = additional_option.pop()
+            print("next_room",next_room, "room id",room_id)
             path_to_room = graph.bfs(room_id, next_room)
+            print("path_to_room",path_to_room)
             path.extend(path_to_room[1:])
             for item in path_to_room:
                 print("BFS first inside", item)
-                direction=graph.directions[room_id]
+                direction=graph.directions[item]
                 # direction=graph.directions[room_id].keys(item)
                 # move(direction)
-                for key,value in direction:
-                    print("BFS second inside", item,value)
-                    if value==item:
+                for key in direction:
+                    print("BFS second inside", key,direction[key])
+                    if direction[key]==item:
+                        print("INSIDE direction")
                         move(key)                    
                 if item not in visited:
                     visited.add(item)
