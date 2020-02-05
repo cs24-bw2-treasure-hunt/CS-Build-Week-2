@@ -2,12 +2,12 @@ from util import Graph,Stack,Queue
 import requests 
 import json
 import time
-from functions import inventAndCoins,pickUpTreasure,InventoryLimitReached
+from functions import inventAndCoins,pickUpTreasure,InventoryLimitReached, InventoryList, sellAndConfirm
 
 """
     Take into Account:
         - Cool Down Time [DONE]
-        - Inventory (limit of how many items we can carry) [tonight]
+        - Inventory (limit of how many items we can carry) [DONE]
             - treasure or other items that could help in the rooms
         - 1,000+ coins go to the wishing well (if we know where it is, if not search for it).
           Once found do action there (change name) [tonight]
@@ -73,23 +73,28 @@ def wise_move(direct, next_room_id):
 def traverse(startingRoom):
     # print("startingRoom",startingRoom,startingRoom["room_id"])
     stack = Stack() # Will hold path
-    path=[] # Will hold room id
+    # path=[] # Will hold room id
     additional_option = Stack() # Will hold room id of rooms with unvisited directions
     visited = set() # Will hold the ids of the rooms we visited
     stack.push(startingRoom["room_id"])
     graph.add_vertex(startingRoom["room_id"], startingRoom["title"], startingRoom["description"], startingRoom["coordinates"], startingRoom["elevation"], startingRoom["terrain"], startingRoom["players"], startingRoom["items"], startingRoom["exits"], startingRoom["cooldown"], startingRoom["errors"], startingRoom["messages"])
+    shop = None
+    if startingRoom["title"] == "Shop":
+        shop = startingRoom["room_id"]
     while stack.size() > 0:
+
         room_id = stack.pop()
-        print("\n\nCurrent room_id",room_id)
+        print("\n\nCurrent room_id",room_id, "shop", shop)
         # print(f"\n inventAndCoins()",inventAndCoins())
 
         if room_id not in visited:
             print(f"Room {room_id} added to visited")
             visited.add(room_id)
             # graph.add_vertex(room_id, title, description, coordinates, elevation, terrain, players, items, exits, cooldown, errors, messages)
-            path.append(room_id)
+            # path.append(room_id)
         if len(visited) == 500:
-            return path
+            # return path
+            return
         exits = graph.directions[room_id]
         # print("EXITS", exits)
         # potential_rooms.sort()
@@ -105,19 +110,58 @@ def traverse(startingRoom):
                     print(f"Moving from {room_id}, direction {key}")
                     nextRoom=move(key)
                     print("\nNow in nextRoom",nextRoom)
+                    
+                    graph.add_vertex(nextRoom["room_id"], nextRoom["title"], nextRoom["description"], nextRoom["coordinates"], nextRoom["elevation"], nextRoom["terrain"], nextRoom["players"], nextRoom["items"], nextRoom["exits"], nextRoom["cooldown"], nextRoom["errors"], nextRoom["messages"])
+                    # print("graph.directions",graph.directions)
+                    graph.add_edge(room_id,key,nextRoom["room_id"])
+                    # print("graph.directions After",graph.directions)
+                    if nextRoom["title"] == "Shop":
+                        shop = nextRoom["room_id"]
+                    
+                    moved=True
                     if len(nextRoom["items"])>0:
                         # print("\nInventoryLimitReached",InventoryLimitReached())
                         if InventoryLimitReached()==False:
                             for item in nextRoom["items"]:
                                 print(f"about to pick up {item}")
                                 pickUpTreasure(item)
-                    graph.add_vertex(nextRoom["room_id"], nextRoom["title"], nextRoom["description"], nextRoom["coordinates"], nextRoom["elevation"], nextRoom["terrain"], nextRoom["players"], nextRoom["items"], nextRoom["exits"], nextRoom["cooldown"], nextRoom["errors"], nextRoom["messages"])
-                    # print("graph.directions",graph.directions)
-                    graph.add_edge(room_id,key,nextRoom["room_id"])
-                    # print("graph.directions After",graph.directions)
-        
-                    stack.push(nextRoom["room_id"])
-                    moved=True
+                        elif shop is not None:
+                            path_to_shop = graph.bfs(nextRoom["room_id"], shop)
+                            reverse = path_to_shop[::-1]
+                            total_path = path_to_shop.extend(reverse)
+                            # path.extend(total_path[1:])
+                            i=0
+
+                            next_room_id = None
+                            while i< len(total_path)-1:
+
+
+                                current_room_id = total_path[i]
+                                next_room_id = total_path[i+1]
+                                print("CURRENT ROOM", current_room_id)
+                                print("NEXT ROOM", next_room_id)
+                                if current_room_id ==shop:
+                                    inventory_list = InventoryList()
+                                    for item in inventory_list:
+                                        sellAndConfirm(item)
+
+                            # for index, item in enumerate(path_to_room):
+                                # print("Item in path_to_room", )
+                                direction=graph.directions[current_room_id]
+                                # direction=graph.directions[room_id].keys(item)
+                                # move(direction)
+                                print(f"DIRECTION: {direction}")
+                                for key in direction:
+                                    # print("Key in direction", key,direction[key],item, graph.directions[item].values())
+                                    if direction[key] == next_room_id:
+                                        print(f"about to make a WISE MOVE from {current_room_id} {key} to {next_room_id}")
+                                        next_room = wise_move(key, next_room_id)
+                                        print(f"\nMade a WISE MOVE to {next_room}")                    
+                                if current_room_id not in visited:
+                                    visited.add(item)
+                                i+=1
+                    stack.push(nextRoom["room_id"])        
+
                 
             # print("Breaks Here 5")
         if possible_directions > 1:
@@ -132,9 +176,10 @@ def traverse(startingRoom):
             path_to_room = graph.bfs(room_id, return_room)
             print("Following path_to_room", path_to_room)
     
-            path.extend(path_to_room[1:])
+            # path.extend(path_to_room[1:])
 
             i=0
+            next_room_id = None
             while i< len(path_to_room)-1:
                 
                 current_room_id = path_to_room[i]
@@ -149,8 +194,8 @@ def traverse(startingRoom):
                 # move(direction)
                 print(f"DIRECTION: {direction}")
                 for key in direction:
-                    # print("Key in direction", key,direction[key],item, graph.directions[item].values())
-                    if direction[key] in graph.directions[current_room_id].values():
+                    # print("Key in direction", key,direction[key], graph.directions[current_room_id].values())
+                    if direction[key] == next_room_id:
                         print(f"about to make a WISE MOVE from {current_room_id} {key} to {next_room_id}")
                         next_room = wise_move(key, next_room_id)
                         print(f"\nMade a WISE MOVE to {next_room}")                    
@@ -158,7 +203,7 @@ def traverse(startingRoom):
                     visited.add(item)
                 i+=1
             # print("End of path",is not in list path[-1], "Instantiate",instantiate()["room_id"])
-            stack.push(path[-1])
+            stack.push(next_room_id)
         print("graph vertices", graph.directions)
     return None
 

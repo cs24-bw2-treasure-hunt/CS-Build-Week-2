@@ -11,46 +11,54 @@ def inventAndCoins():
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/status/', headers=headers)
     return response.json()
 
-def CarryLimit():
-    Inventory=inventAndCoins()
-    return Inventory["strength"]
-def InventoryList():
-    Inventory=inventAndCoins()
-    return Inventory["inventory"]
-def InventoryLimitReached():
-    if len(InventoryList())==CarryLimit():
+# def CarryLimit(inventory = None):
+#     if inventory is None:
+#         inventory=inventAndCoins()
+#     return inventory["strength"]
+def InventoryList(inventory = None):
+    if inventory is None:
+        inventory=inventAndCoins()
+    return inventory["inventory"]
+def InventoryLimitReached(inventory = None):
+    if inventory is None:
+        inventory=inventAndCoins()
+    if len(inventory["inventory"])==inventory["strength"]:
         return True
     else:
         return False
-def coinsNeeded():
-    Inventory=inventAndCoins()
-    if Inventory.gold >=1000:
+def coinsNeeded(inventory = None):
+    if inventory is None:
+        inventory=inventAndCoins()
+
+    if inventory["gold"] >=1000:
         return True
     else:
         return False
-def coinsCarried():
-    Inventory=inventAndCoins()
-    return Inventory.gold
+# def coinsCarried():
+#     Inventory=inventAndCoins()
+#     return Inventory.gold
 
 def sellAndConfirm(treasure):
+    # headers = {
+    # 'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    # 'Content-Type': 'application/json',
+    # }
+
+    # data = '{"name":f"{treasure}"}'
+
+    # response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/', headers=headers, data=data)
+    # print(response.json().messages)
     headers = {
     'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
     'Content-Type': 'application/json',
     }
 
-    data = '{"name":f"{treasure}"}'
+    data = '{"name":"' +str(treasure)+'", "confirm":"yes"}'
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/', headers=headers, data=data)
-    print(response.json().messages)
-    headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
-    'Content-Type': 'application/json',
-    }
+    print("treasure sold", response.json())
+    time.sleep(response.json()["cooldown"])
 
-    data = '{"name":f"{treasure}", "confirm":"yes"}'
-
-    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/', headers=headers, data=data)
-    return coinsCarried()
 
 def pickUpTreasure(treasure):
     headers = {
