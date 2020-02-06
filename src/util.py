@@ -1,6 +1,5 @@
 
 
-
 class Queue:
     def __init__(self):
         self.queue = []
@@ -41,14 +40,16 @@ class Graph:
         self.room_info = {}
 
     def add_vertex(self, room_id, title, description, coordinates, elevation, terrain, players, items, exits, cooldown, errors, messages):
+        if room_id in self.room_info:
+            return
         edges = {}
         for direction in exits:
             edges[direction] = "?"
         self.directions[room_id] = edges
-        
+
         self.room_info[room_id] = {"title": title, "description": description, "coordinates": coordinates, "elevation": elevation, "terrain": terrain,
-                                  "players": players, "items": items, "exits": exits, "cooldown": cooldown, "errors": errors, "messages": messages}
-        
+                                   "players": players, "items": items, "exits": exits, "cooldown": cooldown, "errors": errors, "messages": messages}
+
     def add_edge(self, room_id1, direction, room_id2):
         direction_reverse = {"n": "s", "s": "n", "e": "w", "w": "e"}
         if room_id1 in self.directions and room_id2 in self.directions:
@@ -59,7 +60,8 @@ class Graph:
             raise IndexError("That vertex does not exist")
 
     def get_neighbors(self, room_id):
-        # print("self.directions[room_id]",self.directions[room_id])
+        # print("get_neighbors", room_id)
+        # print("self.directions[room_id]",room_id, self.directions[room_id])
         return self.directions[room_id]
 
     def bft(self, starting_room_id):
@@ -73,6 +75,27 @@ class Graph:
                 visited.add(room_id)
                 for next_room in self.get_neighbors(room_id):
                     q.enqueue(next_room)
+
+    def bft_to_unknown(self, room_id):
+        print("BFT TO UNKNOWN")
+        q = Queue()
+        q.enqueue([room_id])
+        visited = set()
+        while q.size() > 0:
+            path = q.dequeue()
+            room_id = path[-1]
+            if room_id not in visited:
+                if "?" in self.directions[room_id].values():
+                    # print(self.direction)
+                    print("BTF TO UNKNOWN ROOM", path[-1])
+                    return path[-1]
+                visited.add(room_id)
+                for next_room in self.get_neighbors(room_id):
+                    new_path = list(path)
+                    append_path = self.directions[room_id][next_room]
+                    if append_path != "?":
+                        new_path.append(append_path)
+                    q.enqueue(new_path)
 
     def bfs(self, starting_room_id, destination_room_id):
         # print("BFS starting_room_id, destination_room_id", starting_room_id, destination_room_id)
@@ -91,10 +114,12 @@ class Graph:
                 visited.add(room_id)
                 for next_room in self.get_neighbors(room_id):
                     new_path = list(path)
-                    new_path.append(self.directions[room_id][next_room])
+                    # print("new_path_1", new_path)
+                    append_path = self.directions[room_id][next_room]
+                    if append_path != "?":
+                        new_path.append(append_path)
+                    # print("new_path", new_path)
                     q.enqueue(new_path)
-        
-
 
     def dfs(self, starting_vertex, destination_vertex):
         """
@@ -119,7 +144,7 @@ class Graph:
 
     def traverse(self):
         stack = Stack()
-        path=[]
+        path = []
         additional_option = Stack()
         visited = set()
         stack.push(0)
@@ -136,7 +161,7 @@ class Graph:
             possible_directions = 0
             for next_room in potential_rooms:
                 if next_room not in visited:
-                    possible_directions +=1
+                    possible_directions += 1
                     stack.push(next_room)
             if possible_directions > 1:
                 additional_option.push(room)
@@ -149,7 +174,7 @@ class Graph:
                         visited.add(item)
                 stack.push(path[-1])
         return None
-    
+
 
 # headers = {
 #     'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
@@ -160,3 +185,35 @@ class Graph:
 
 # response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/move/', headers=headers, data=data)
 # print(response.json())
+
+
+# class MiniGraph:
+#     def __init__(self):
+#         self.vertices = {}
+
+#     def add_vertex(self, vertex_id):
+#         self.vertices[vertex_id] = {}
+
+#     def add_edges(self, vertex_id, connections):
+#         self.vertices[vertex_id] = connections
+
+#     def get_neighbors(self, vertex_id):
+#         return self.vertices[vertex_id]
+
+#     def bfs(self, starting_id, destination_id):
+#         q = Queue()
+#         q.enqueue([starting_id])
+#         visited = set()
+#         while q.size() > 0:
+#             path = q.dequeue()
+#             vertex = path[-1]
+#             if vertex not in visited:
+#                 if vertex == destination_id:
+#                     return path
+#                 visited.add(vertex)
+#                 for next_vertex in self.get_neighbors(vertex):
+#                     if self.vertices[vertex][next_vertex] != "?":
+#                         new_path = list(path)
+#                         new_path.append(self.vertices[vertex][next_vertex])
+#                         q.enqueue(new_path)
+#                     # print(self.vertices[vertex][next_vertex])
