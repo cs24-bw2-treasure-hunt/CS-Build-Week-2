@@ -79,26 +79,36 @@ class Graph:
     def bft_to_unknown(self, room_id):
         print("BFT TO UNKNOWN")
         q = Queue()
-        q.enqueue([room_id])
+        q.enqueue(room_id)
         visited = set()
         while q.size() > 0:
             path = q.dequeue()
-            room_id = path[-1]
+            # print("PATH", path)
+            room_id = path
             if room_id not in visited:
+                # print(room_id, " not in visited")
+                print(self.directions[room_id].values())
                 if "?" in self.directions[room_id].values():
                     # print(self.direction)
-                    print("BTF TO UNKNOWN ROOM", path[-1])
-                    return path[-1]
+                    print("BTF TO UNKNOWN ROOM", path)
+                    return room_id
                 visited.add(room_id)
                 for next_room in self.get_neighbors(room_id):
-                    new_path = list(path)
-                    append_path = self.directions[room_id][next_room]
-                    if append_path != "?":
-                        new_path.append(append_path)
-                    q.enqueue(new_path)
+                    # new_path = list(path)
+                    next_room_id = self.directions[room_id][next_room]
+                    print("Next room", next_room_id)
+                    if next_room_id == "?":
+                        print("NOT THERE")
+                        return room_id
+                    if next_room_id not in visited:
+                        # new_path.append(append_room_id)
+                    # if next_room not in visited:
+                        q.enqueue(next_room_id)
+
+        print("what? how?")
 
     def bfs(self, starting_room_id, destination_room_id):
-        # print("BFS starting_room_id, destination_room_id", starting_room_id, destination_room_id)
+        print("BFS starting_room_id, destination_room_id", starting_room_id, destination_room_id)
         q = Queue()
         q.enqueue([starting_room_id])
         visited = set()
@@ -108,8 +118,9 @@ class Graph:
             room_id = path[-1]
             # print("room_id bfs",room_id)
             if room_id not in visited:
+                # print("PATH", path)
                 if room_id == destination_room_id:
-                    # print("INSIDE",path[1:])
+                    print("INSIDE",path[1:])
                     return path
                 visited.add(room_id)
                 for next_room in self.get_neighbors(room_id):
