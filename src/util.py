@@ -116,6 +116,7 @@ class Graph:
             path = q.dequeue()
             # print("path in bfs", path)
             room_id = path[-1]
+            print("BFS room_id", room_id)
             # print("room_id bfs",room_id)
             if room_id not in visited:
                 # print("PATH", path)
@@ -123,7 +124,7 @@ class Graph:
                     print("INSIDE",path[1:])
                     return path
                 visited.add(room_id)
-                for next_room in self.get_neighbors(room_id):
+                for next_room in self.directions[room_id]:
                     new_path = list(path)
                     # print("new_path_1", new_path)
                     append_path = self.directions[room_id][next_room]
@@ -131,6 +132,7 @@ class Graph:
                         new_path.append(append_path)
                     # print("new_path", new_path)
                     q.enqueue(new_path)
+        print("this didn't work")
 
     def dfs(self, starting_vertex, destination_vertex):
         """
@@ -148,7 +150,7 @@ class Graph:
                 if vertex == destination_vertex:
                     return path
                 visited.add(vertex)
-                for next_vertex in self.get_neighbors(vertex):
+                for next_vertex in self.directions[vertex]:
                     new_path = list(path)
                     new_path.append(next_vertex)
                     stack.push(new_path)
