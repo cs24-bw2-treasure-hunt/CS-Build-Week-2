@@ -2,7 +2,9 @@ from util import Graph,Stack,Queue
 import requests 
 import json
 import time
-from functions import instantiate, inventAndCoins, pickUpTreasure, InventoryLimitReached, InventoryList, sellAndConfirm, coinsNeeded,changeName, shrinePray
+from functions import instantiate, inventAndCoins, pickUpTreasure, InventoryLimitReached, InventoryList, sellAndConfirm, coinsNeeded,changeName, shrinePray, examine, getProof, mine
+from hashtable import *
+
 import pickle
 
 
@@ -39,10 +41,11 @@ import pickle
     
 """
 
+
 graph = Graph()
 def move(direct):
     headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
@@ -59,7 +62,7 @@ def move(direct):
 
 def wise_move(direct, next_room_id):
     # print("inside WISE MOVE, next_room_id", next_room_id)
-    headers = {    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    headers = {    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
@@ -146,57 +149,6 @@ def traverse(startingRoom):
                         shrinePray()
                     
                     moved=True
-
-                    #If the next room (the room we have just moved into) has items then we will for loop and pick up the items
-                    if len(nextRoom["items"])>0:
-                        if coinsNeeded()==False:
-
-                            #Checks to see if we are carrying more than our limit or not. If we are not then we pick up items
-                            if len(InventoryList())<8:
-                                for item in nextRoom["items"]:
-                                    # if item == "Small Treasure":
-                                    # print("ITEM", item)
-                                    pickUpTreasure(item)
-                            #If we reached the limit of items we can carry and we know the shop id because we discovered it we then bfs to the shop to sell our treasure and traverse back to the nextRoom id as that was the last room we were in. The functionality is similar to what we did with the bfs when possible_directions===0
-                            elif shop is not None:
-                                if InventoryLimitReached()==False:
-                                    for item in nextRoom["items"]:
-                                        # if item == "Small Treasure":
-                                        # print("ITEM", item)
-                                        pickUpTreasure(item)
-                                        if len(InventoryList())==10:
-                                            break
-                                if InventoryLimitReached()==True:
-                                    path_to_shop = graph.bfs(nextRoom["room_id"], shop)
-                                    reverse = path_to_shop[::-1]
-                                    reverse=reverse[1:]
-                                    total_path = path_to_shop.extend(reverse)
-                                    i=0
-
-                                next_room_id = None
-                                while i< len(total_path)-1:
-
-
-                                    current_room_id = total_path[i]
-                                    next_room_id = total_path[i+1]
-
-                                    #Checks to see if the current room we are in is the one that belongs to the shop. If it is we loop through our inventory and sell our treasure.
-                                    if current_room_id ==shop:
-                                        inventory_list = InventoryList()
-                                        for item in inventory_list:
-                                            sellAndConfirm(item)
-
-                                    direction=graph.directions[current_room_id]
-
-                                    for key in direction:
-                                        if direction[key] == next_room_id:
-                                            next_room = wise_move(key, next_room_id)                 
-                                    if current_room_id not in visited:
-                                        visited.add(item)
-                                    i+=1
-                    #Check to see if we have the 1,000 plus coins we need to purchase a new name.If we do and we know where the wishing well is we bfs there and change our name so we can mine. 
-
-
                     stack.push(nextRoom["room_id"])        
 
         #This adds a room id to additional_option since it has a direction with a question mark
@@ -229,35 +181,109 @@ def traverse(startingRoom):
 
 
 count = 0
-traverse(instantiate())
-pickle.dump(graph.room_info, open( "roomInfo.p", "wb" ))
-pickle.dump(graph.directions, open( "direction.p", "wb" ))
-roomInfo = pickle.load(open("roomInfo.p", 'rb'))
-direction = pickle.load(open("direction.p", 'rb'))
-print("Room Info after pickle",roomInfo)
-print("Direction after pickle",direction)
-for i in graph.directions:
-    graph.room_info[i]["directions"]=graph.directions[i]
-pickle.dump(graph.room_info, open( "direcandRoom.p", "wb" ))
+# traverse(instantiate())
+# pickle.dump(graph.room_info, open( "roomInfo.p", "wb" ))
+# pickle.dump(graph.directions, open( "direction.p", "wb" ))
+# roomInfo = pickle.load(open("roomInfo.p", 'rb'))
+# direction = pickle.load(open("direction.p", 'rb'))
+# print("Room Info after pickle",roomInfo)
+# print("Direction after pickle",direction)
+# for i in graph.directions:
+#     graph.room_info[i]["directions"]=graph.directions[i]
+# pickle.dump(graph.room_info, open( "direcandRoom.p", "wb" ))
 
-direcandRoom = pickle.load(open("direcandRoom.p", 'rb'))
-print("direcandRoom, combining direction and room after pickle",direcandRoom)
-if wishingWell is not None:
-    path_to_room = graph.bfs(instantiate(), wishingWell)
+# direcandRoom = pickle.load(open("direcandRoom.p", 'rb'))
+# print("direcandRoom, combining direction and room after pickle",direcandRoom)
+# if wishingWell is not None:
+#     path_to_room = graph.bfs(instantiate(), wishingWell)
+#     print("Wishing Well",path_to_room)
 
-    i=0
-    next_room_id = None
-    while i< len(path_to_room)-1:
+#     i=0
+#     next_room_id = None
+#     while i< len(path_to_room)-1:
         
-        current_room_id = path_to_room[i]
-        next_room_id = path_to_room[i+1]
+#         current_room_id = path_to_room[i]
+#         next_room_id = path_to_room[i+1]
 
-        direction=graph.directions[current_room_id]
+#         direction=graph.directions[current_room_id]
 
-        for key in direction:
-            if direction[key] == next_room_id:
-                next_room = wise_move(key, next_room_id)               
-    changeName()
+#         for key in direction:
+#             if direction[key] == next_room_id:
+#                 next_room = wise_move(key, next_room_id)               
+    # changeName()
 
 
+#TRAVERSE TO SHOP
+# path_to_room = graph.bfs(instantiate()['room_id'], 1)
+# print("path_to_room",instantiate())
+# i=0
+# next_room_id = None
+# while i< len(path_to_room)-1:
+#     current_room_id = path_to_room[i]
+#     next_room_id = path_to_room[i+1]
+#     direction=graph.directions[current_room_id]
+#     for key in direction:
+#         print("direction[key]",direction[key],next_room_id)
+#         if direction[key] == next_room_id:
+#             next_room = wise_move(key, next_room_id)   
+#     print("instantiate inside while loop",instantiate()["room_id"])   
+#     i+=1
+# for i in inventAndCoins()["inventory"]:
+#     sellAndConfirm(i)
 
+# # TRAVERSE TO PIRATE RY
+# path_to_room = graph.bfs(instantiate()['room_id'], 467)
+# print("path_to_room",path_to_room)
+# i=0
+# next_room_id = None
+# while i< len(path_to_room)-1:
+#     current_room_id = path_to_room[i]
+#     next_room_id = path_to_room[i+1]
+#     direction=graph.directions[current_room_id]
+#     for key in direction:
+#         print("direction[key]",direction[key],next_room_id)
+#         if direction[key] == next_room_id:
+#             next_room = wise_move(key, next_room_id)   
+#     print("instantiate inside while loop",instantiate()["room_id"])   
+#     i+=1
+# changeName()
+
+# TRAVERSE TO WISHING WELL
+# path_to_room = graph.bfs(instantiate()['room_id'], 55)
+# print("path_to_room",path_to_room)
+# i=0
+# next_room_id = None
+# while i< len(path_to_room)-1:
+#     current_room_id = path_to_room[i]
+#     next_room_id = path_to_room[i+1]
+#     direction=graph.directions[current_room_id]
+#     for key in direction:
+#         print("direction[key]",direction[key],next_room_id)
+#         if direction[key] == next_room_id:
+#             next_room = wise_move(key, next_room_id)   
+#     print("instantiate inside while loop",instantiate()['room_id'])   
+#     i+=1
+# examine()
+# print("Description", graph.room_info)
+
+
+# TRAVERSE TO MINE COIN
+path_to_room = graph.bfs(instantiate()['room_id'], 368)
+print("path_to_room",path_to_room)
+i=0
+next_room_id = None
+while i< len(path_to_room)-1:
+    current_room_id = path_to_room[i]
+    next_room_id = path_to_room[i+1]
+    direction=graph.directions[current_room_id]
+    for key in direction:
+        print("direction[key]",direction[key],next_room_id)
+        if direction[key] == next_room_id:
+            next_room = wise_move(key, next_room_id)   
+    print("instantiate inside while loop",instantiate()["room_id"])   
+    i+=1
+
+difficulty=6
+mine(proof_of_work(getProof()['proof'],difficulty))
+
+# print("proof of work",mine(proof_of_work(getProof()['proof'],difficulty)))

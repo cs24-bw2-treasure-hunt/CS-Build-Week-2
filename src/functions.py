@@ -5,7 +5,7 @@ import time
 
 def instantiate():
     headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
         }
 
     response = requests.get('https://lambda-treasure-hunt.herokuapp.com/api/adv/init/', headers=headers)
@@ -15,7 +15,7 @@ def instantiate():
 
 def inventAndCoins():
     headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
@@ -47,7 +47,7 @@ def coinsNeeded(inventory = None):
 
 def sellAndConfirm(treasure):
     headers = {
-        'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+        'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
         'Content-Type': 'application/json',}
     data = '{"name":"' +str(treasure)+'", "confirm":"yes"}'
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/sell/', headers=headers, data=data)
@@ -56,7 +56,7 @@ def sellAndConfirm(treasure):
 
 def pickUpTreasure(treasure):
     headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
@@ -67,7 +67,7 @@ def pickUpTreasure(treasure):
 
 def dropTreasure(treasure):
     headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
@@ -79,7 +79,7 @@ def dropTreasure(treasure):
 
 def wearEquipment(Equipment):
     headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
@@ -90,7 +90,7 @@ def wearEquipment(Equipment):
 
 def dropEquipment(Equipment):
     headers = {
-    'Authorization': 'Token 7a375b52bdc410eebbc878ed3e58b2e94a8cb607',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
@@ -101,20 +101,50 @@ def dropEquipment(Equipment):
 
 def changeName():
     headers={
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
-    data = '{"name":"[Obaida Albaroudi]"}'
+    data = '{"name":"[Jade Lopez]", "confirm":"aye"}'
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/change_name/', headers=headers, data=data)
     print("Change Name",response.json())
 
 def shrinePray():
     headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
     'Content-Type': 'application/json',
     }
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/pray/', headers=headers)
     print("Shrine Pray", response.json())
+
+def examine():
+    headers = {
+        'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
+        'Content-Type': 'application/json',
+        }
+    # data ='{"name":"[' +str(spmcdonnell)+ ']"}'
+    data='{"name": "well"}'
+    print("data",data)
+    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/examine/', headers=headers, data=data)
+    time.sleep(response.json()["cooldown"])
+    print("Examine", response.json() )
+
+def getProof():
+    headers = {
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
+    }
+    response = requests.get('https://lambda-treasure-hunt.herokuapp.com/api/bc/last_proof/', headers=headers)
+    time.sleep(response.json()["cooldown"])
+    return response.json()
+
+def mine(new_proof):
+    headers = {
+    'Authorization': 'Token d03435f93859f57fed07afb0ba1d83491ffab7b4',
+    'Content-Type': 'application/json',
+    }
+    data = json.dumps({'proof':new_proof })
+    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/bc/mine/', headers=headers, data=data)
+    print("MINE AWAY", response.json())
+    return response.json()
