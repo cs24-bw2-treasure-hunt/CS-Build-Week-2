@@ -2,7 +2,6 @@ import requests
 import json
 import time
 
-
 def instantiate():
     headers = {
     'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
@@ -88,6 +87,36 @@ def wearEquipment(Equipment):
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/wear/', headers=headers, data=data)
     print("Wear Equipment",  response.json())
 
+def changeName():
+    headers={
+    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+    'Content-Type': 'application/json',
+    }
+
+    data = '{"name":"[Obaida Albaroudi]","confirm":"aye"}'
+    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/change_name/', headers=headers, data=data)
+    print("Change Name",response.json())
+
+def examine():
+    headers = {
+        'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+        'Content-Type': 'application/json',
+        }
+    # data ='{"name":"[' +str(spmcdonnell)+ ']"}'
+    data='{"name": "well"}'
+    print("data",data)
+    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/examine/', headers=headers, data=data)
+    time.sleep(response.json()["cooldown"])
+    print("Examine", response.json())
+
+def shrinePray():
+    headers = {
+        'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
+        'Content-Type': 'application/json',
+        }
+    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/pray/', headers=headers)
+    print("Shrine Pray", response.json())
+
 def dropEquipment(Equipment):
     headers = {
     'Authorization': 'Token 7a375b52bdc410eebbc878ed3e58b2e94a8cb607',
@@ -95,26 +124,8 @@ def dropEquipment(Equipment):
     }
 
     data = '{"name":"[f"{Equipment}"]"}'
+    
 
     response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/undress/', headers=headers, data=data)
     print("Drop Equipment", response.json())
 
-def changeName():
-    headers={
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
-    'Content-Type': 'application/json',
-    }
-
-    data = '{"name":"[Obaida Albaroudi]"}'
-
-    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/change_name/', headers=headers, data=data)
-    print("Change Name",response.json())
-
-def shrinePray():
-    headers = {
-    'Authorization': 'Token 483f54da97f902a54b1a93b0d6409362f3cf847e',
-    'Content-Type': 'application/json',
-    }
-
-    response = requests.post('https://lambda-treasure-hunt.herokuapp.com/api/adv/pray/', headers=headers)
-    print("Shrine Pray", response.json())
